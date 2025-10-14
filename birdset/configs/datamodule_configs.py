@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal, Optional, field
 
 
 @dataclass
@@ -91,6 +91,6 @@ class LoaderConfig:
 
 @dataclass
 class LoadersConfig:
-    train: LoaderConfig = LoaderConfig()
-    valid: LoaderConfig = LoaderConfig(shuffle=False)
-    test: LoaderConfig = LoaderConfig(shuffle=False)
+    train: LoaderConfig = field(default_factory=LoaderConfig)
+    valid: LoaderConfig = field(default_factory=lambda: LoaderConfig(shuffle=False))
+    test:  LoaderConfig = field(default_factory=lambda: LoaderConfig(shuffle=False))
