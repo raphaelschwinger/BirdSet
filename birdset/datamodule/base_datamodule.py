@@ -368,6 +368,7 @@ class BaseDataModuleHF(L.LightningDataModule):
                 self.val_dataset = self._get_dataset("valid")
                 self.train_dataset = self._get_dataset("train")
             if self.dataset_config.use_test_as_valid:
+                log.warning("Using test set as validation set.")
                 self.test_dataset = self._get_dataset("test")
 
         if not self.test_dataset:
