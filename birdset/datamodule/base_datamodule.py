@@ -367,6 +367,8 @@ class BaseDataModuleHF(L.LightningDataModule):
                 log.info("fit")
                 self.val_dataset = self._get_dataset("valid")
                 self.train_dataset = self._get_dataset("train")
+            if self.dataset_config.use_test_as_valid:
+                self.test_dataset = self._get_dataset("test")
 
         if not self.test_dataset:
             if stage == "test":
@@ -501,6 +503,11 @@ class BaseDataModuleHF(L.LightningDataModule):
             return DataLoader(self.train_dataset, **asdict(self.loaders_config.train))  # type: ignore
 
     def val_dataloader(self):
+        if self.dataset_config.use_test_as_valid:
+            return [
+                DataLoader(self.val_dataset, **asdict(self.loaders_config.valid)),
+                DataLoader(self.test_dataset, **asdict(self.loaders_config.valid)),
+            ]
         return DataLoader(self.val_dataset, **asdict(self.loaders_config.valid))  # type: ignore
 
     def test_dataloader(self):

@@ -37,6 +37,8 @@ class DatasetConfig:
         Defines the maximum number of audio events processed per audio file, capping the quantity to ensure balance across files. If None, all events are processed.
     direct_fingerprint: int, optional
         Only works with PretrainDatamodule. Path to a saved preprocessed dataset path
+    use_test_as_valid: bool, optional
+        Whether to use the test set as the validation set. Default is False. This is useful for debugging and setting hyperparameters on a specialized dataset.
     """
 
     data_dir: str = "/workspace/data_birdset"
@@ -54,7 +56,8 @@ class DatasetConfig:
     eventlimit: Optional[int] = None
     direct_fingerprint: Optional[str] = (
         None  # TODO only supported in PretrainDatamodule
-    )
+    ),
+    use_test_as_valid: Optional[bool] = False
 
 
 @dataclass
