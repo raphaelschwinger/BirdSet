@@ -609,17 +609,12 @@ class Audio:
     @staticmethod
     def get_audio_metadata(file_path) -> tuple:
         """Return (num_samples, sample_rate)."""
-        info = torchaudio.info(file_path)
-        # Deal with backwards-incompatible signature change.
-        # See https://github.com/pytorch/audio/issues/903 for more information.
-        if type(info) is tuple:
-            si, ei = info
-            num_samples = si.length
-            sample_rate = si.rate
-        else:
-            num_samples = info.num_frames
-            sample_rate = info.sample_rate
-        return num_samples, sample_rate
+        try: #! Changed to use soundfile as torchaudio.info doesnt work on newer versions
+            info = sf.info(file_path)
+            return info.frames, info.samplerate
+        except Exception as e:
+            # Fallback for very specific edge cases or empty files
+            raise RuntimeError(f"Failed to read metadata for {file_path}: {e}")
 
     def get_num_samples(self, file: AudioFile) -> int:
         """Number of samples (in target sample rate)
@@ -756,11 +751,20 @@ class Audio:
 
         if original_samples is None:
             try:
-                original_data, _ = torchaudio.load(
+                # sf.read uses 'stop' as absolute index, not duration
+                stop_idx = original_sample_offset + original_num_samples
+                
+                # Load as float32, always return 2D array [Time, Channels]
+                data, _ = sf.read(
                     audio_path,
-                    frame_offset=original_sample_offset,
-                    num_frames=original_num_samples,
+                    start=original_sample_offset,
+                    stop=stop_idx,
+                    dtype="float32",
+                    always_2d=True
                 )
+                
+                # Convert to Tensor and Transpose: [Time, Channels] -> [Channels, Time]
+                original_data = torch.from_numpy(data).t()
             except TypeError:
                 raise Exception(
                     "It looks like you are using an unsupported version of torchaudio."
